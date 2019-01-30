@@ -10,13 +10,33 @@ import UIKit
 
 class PersonWrapper {
 
-    private static let dateFormatterISO8601: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .iso8601)
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
-        return formatter
-    }()
-    
+    struct KeyConstants {
+        static let FilmNames = "filmNames"
+        static let StarshipNames = "starshipNames"
+        static let VehicleNames = "vehicleNames"
+        static let SpecieNames = "specieNames"
+        static let HomeworldName = "homeworldName"
+    }
+
+    struct PersonFields {
+        static let Name = "name"
+        static let BirthYear = "birth_year"
+        static let EyeColor = "eye_color"
+        static let Gender = "gender"
+        static let HairColor = "hair_color"
+        static let SkinColor = "skin_color"
+        static let Height = "height"
+        static let Mass = "mass"
+        static let Edited = "edited"
+        static let Homeworld = "homeworld"
+        static let Films = "films"
+        static let Starships = "starships"
+        static let Vehicles = "vehicles"
+        static let Species = "species"
+        static let Url = "url"
+        static let Title = "title"
+    }
+
     var name: String?
     var heightString: String?
     var massString: String?
@@ -33,122 +53,118 @@ class PersonWrapper {
     var starship_urls: [String]?
     var vehicle_urls: [String]?
     var edited: Date?
-    var features: PersonFeaturesModel?
     
     required init?(json: [String: Any]) {
-        self.name = json["name"] as? String
-        self.birth_year = json["birth_year"] as? String
-        self.eye_color = json["eye_color"] as? String
-        self.gender = json["gender"] as? String
-        self.hair_color = json["hair_color"] as? String
-        self.skin_color = json["skin_color"] as? String
-        self.heightString = json["height"] as? String
-        self.massString = json["mass"] as? String
-        self.editedString = json["edited"] as? String
-        self.edited = PersonWrapper.dateFormatterISO8601.date(from: editedString!)
-        self.homeworld_url = json["homeworld"] as? String
-        self.film_urls = json["films"] as? [String]
-        self.starship_urls = json["starships"] as? [String]
-        self.vehicle_urls = json["vehicles"] as? [String]
-        self.specie_urls = json["species"] as? [String]
-        self.url = json["url"] as? String
+        self.name = json[PersonFields.Name] as? String
+        self.birth_year = json[PersonFields.BirthYear] as? String
+        self.eye_color = json[PersonFields.EyeColor] as? String
+        self.gender = json[PersonFields.Gender] as? String
+        self.hair_color = json[PersonFields.HairColor] as? String
+        self.skin_color = json[PersonFields.SkinColor] as? String
+        self.heightString = json[PersonFields.Height] as? String
+        self.massString = json[PersonFields.Mass] as? String
+        self.editedString = json[PersonFields.Edited] as? String
+        self.edited = Helper.dateFormatterISO8601.date(from: editedString!)
+        self.homeworld_url = json[PersonFields.Homeworld] as? String
+        self.film_urls = json[PersonFields.Films] as? [String]
+        self.starship_urls = json[PersonFields.Starships] as? [String]
+        self.vehicle_urls = json[PersonFields.Vehicles] as? [String]
+        self.specie_urls = json[PersonFields.Species] as? [String]
+        self.url = json[PersonFields.Url] as? String
     }
            
-    static func films(person: PersonsModel, finished: @escaping (PersonsModel) -> Void) -> Void {
+    static func films(person: PersonsModel, finished: @escaping () -> Void) -> Void {
         var filmNames = [String]()
         let dispatchGroup = DispatchGroup()
 
         for filmUrl in person.film_urls! {
             dispatchGroup.enter()
             AlamofireRequestManager.fetchPersonFeaturesFromAPI(path: filmUrl) { (result) in
-                let s = result["title"]
-                filmNames.append(s as! String)
+                let filmTitle = result[PersonFields.Title]
+                filmNames.append(filmTitle as! String)
                 dispatchGroup.leave()
             }
         }
         
         dispatchGroup.notify(queue: .main) {
             filmNames.sort(by: <)
-            DatabaseManager.saveToStorage(person: person, names: filmNames, key: "filmNames", finished: { (result) in
-         
-                finished(result)
-            })//            DatabaseManager.savePersonFilms(person: person, filmNames: filmNames, finished: { (result) in
-//                finished(result)
-//            })
+            DatabaseManager.saveToStorage(person: person, names: filmNames, key: KeyConstants.FilmNames, finished: { () in
+                    finished()
+            })
         }
         
     }
     
-    static func starships(person: PersonsModel, finished: @escaping (PersonsModel) -> Void) -> Void {
+    static func starships(person: PersonsModel, finished: @escaping () -> Void) -> Void {
         var starshipNames = [String]()
         let dispatchGroup = DispatchGroup()
 
         for starshipUrl in person.starship_urls! {
             dispatchGroup.enter()
             AlamofireRequestManager.fetchPersonFeaturesFromAPI(path: starshipUrl) { (result) in
-                let s = result["name"]
-                starshipNames.append(s as! String)
+                let starshipName = result[PersonFields.Name]
+                starshipNames.append(starshipName as! String)
                 dispatchGroup.leave()
             }
         }
         
         dispatchGroup.notify(queue: .main) {
             starshipNames.sort(by: < )
-//            DatabaseManager.savePersonStarships(person: person, starshipNames: starshipNames, finished: { (result) in
-//                finished(result)
-//            })
-            DatabaseManager.saveToStorage(person: person, names: starshipNames, key: "specieNames", finished: { (result) in
-                
+            DatabaseManager.saveToStorage(person: person, names: starshipNames, key: KeyConstants.StarshipNames, finished: { () in
+                    finished()
             })
         }
     }
     
-    static func vehicles(person: PersonsModel, finished: @escaping (PersonsModel) -> Void) -> Void {
+    static func vehicles(person: PersonsModel, finished: @escaping () -> Void) -> Void {
         var vehicleNames = [String]()
         let dispatchGroup = DispatchGroup()
         
         for vehicleUrl in person.vehicles_url! {
             dispatchGroup.enter()
             AlamofireRequestManager.fetchPersonFeaturesFromAPI(path: vehicleUrl) { (result) in
-                let s = result["name"]
-                vehicleNames.append(s as! String)
+                let vehicleName = result[PersonFields.Name]
+                vehicleNames.append(vehicleName as! String)
                 dispatchGroup.leave()
             }
         }
         
         dispatchGroup.notify(queue: .main) {
             vehicleNames.sort(by: < )
-//            DatabaseManager.savePersonStarships(person: person, starshipNames: vehicleNames, finished: { (result) in
-//                finished(result)
-//            })
+            DatabaseManager.saveToStorage(person: person, names: vehicleNames, key: KeyConstants.VehicleNames, finished: { () in
+                    finished()
+            })
         }
     }
     
-    private func species(person: PersonsModel, finished: @escaping (PersonsModel) -> Void) -> Void {
+    static func species(person: PersonsModel, finished: @escaping () -> Void) -> Void {
         var specieNames = [String]()
         let dispatchGroup = DispatchGroup()
         
         for speciesUrl in person.specie_urls! {
             dispatchGroup.enter()
             AlamofireRequestManager.fetchPersonFeaturesFromAPI(path: speciesUrl) { (result) in
-                let s = result["name"]
-                specieNames.append(s as! String)
+                let specieName = result[PersonFields.Name]
+                specieNames.append(specieName as! String)
+                dispatchGroup.leave()
             }
         }
         
         dispatchGroup.notify(queue: .main) {
             specieNames.sort(by: < )
-//            DatabaseManager.savePersonStarships(person: person, starshipNames: specieNames, finished: { (result) in
-//                finished(result)
-//            })
+            DatabaseManager.saveToStorage(person: person, names: specieNames, key: KeyConstants.SpecieNames, finished: { () in
+                    finished()
+            })
         }
         
     }
-    
-    private func homeworld() -> Void {
-        AlamofireRequestManager.fetchPersonFeaturesFromAPI(path: homeworld_url!) { (result) in
-            let s = result["name"]
-//            self.features?.homeworldName = s as? String
+
+    static func homeworld(person: PersonsModel, finished: @escaping () -> Void) -> Void {
+        AlamofireRequestManager.fetchPersonFeaturesFromAPI(path: person.homeworld_url!) { (result) in
+            let homeworldName = result[PersonFields.Name] as! String
+            DatabaseManager.saveToStorage(person: person, name: homeworldName, key: KeyConstants.HomeworldName, finished: { () in
+                    finished()
+            })
         }
     }
 

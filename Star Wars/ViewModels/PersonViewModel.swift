@@ -7,7 +7,34 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
-class PersonViewModel: NSObject {
+struct PersonViewModel {
+    
+    private var persons =  BehaviorRelay<[PersonsModel]>(value: [])
+    private var disposeBag = DisposeBag()
+    
+    // MARK: - Initializations
+    
+    init() {
+        fetchPersonsAndUpdateObservableData()
+    }
 
+    // MARK: - Public Functions
+    
+    public func getAllPersons() -> BehaviorRelay<[PersonsModel]> {
+        return persons
+    }
+
+    // MARK: - Private Functions
+    
+    private func fetchPersonsAndUpdateObservableData() {
+        DatabaseManager.fetchObservableData()
+            .map({ $0 })
+            .subscribe(onNext: { (person) in
+                self.persons.accept(person)
+            })
+            .disposed(by: disposeBag)
+    }
 }

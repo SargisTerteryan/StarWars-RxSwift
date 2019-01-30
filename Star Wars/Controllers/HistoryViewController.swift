@@ -7,24 +7,61 @@
 //
 
 import UIKit
+import RxCocoa
+import RxSwift
+
 
 class HistoryViewController: UIViewController {
+    
+    struct Constants {
+        static let PersonDetailsTableViewControllerVariable = "PersonDetailsTableViewController"
+        static let HistoryCellIdentifier = "historyCell"
+    }
 
+    @IBOutlet weak var historyTableView: UITableView!
+
+    private let disposeBag = DisposeBag()
+    private var personViewModel = PersonViewModel()
+    
+    // MARK: - View Life Cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        historyTableView.tableFooterView = UIView()
+    
+        populatePersonListTableView()
+        onTableViewCellClick()
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    // MARK: - Table View Setup
+    
+    private func populatePersonListTableView() {
+        let observablePersons = personViewModel.getAllPersons().asObservable()
+        
+        observablePersons.bind(to: historyTableView.rx.items(cellIdentifier: Constants.HistoryCellIdentifier, cellType: UITableViewCell.self)) { (row, element, cell) in
+                cell.textLabel?.text = element.name
+            }
+            .disposed(by: disposeBag)
     }
-    */
+    
+    private func onTableViewCellClick() {
+        Observable
+            .zip(historyTableView.rx.itemSelected, historyTableView.rx.modelSelected(PersonsModel.self))
+            .bind { [unowned self] indexPath, model in
+                self.historyTableView.deselectRow(at: indexPath, animated: true)
+                self.navigateToPersonDetailsViewController(model: model)
+            }
+            .disposed(by: disposeBag)
+    }
+
+    // MARK: - Helper
+    
+    private func navigateToPersonDetailsViewController(model: PersonsModel) {
+        let destination = Helper.instantiateFromStoryboard(identifier: Constants.PersonDetailsTableViewControllerVariable) as! PersonDetailsTableViewController
+        destination.setPerson(person: model)
+        
+        self.navigationController?.pushViewController(destination, animated: true)
+    }
 
 }

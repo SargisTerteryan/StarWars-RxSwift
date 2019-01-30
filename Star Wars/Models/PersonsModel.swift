@@ -11,11 +11,11 @@ import CoreData
 
 @objc(PersonsModel)
 class PersonsModel: NSManagedObject {
-    private var downloadFilmsIsComplate: Bool = false
-    private var downloadStarshipsIsComplate: Bool = false
-    private var downloadVehiclesIsComplate: Bool = false
-    private var downloadSpeciesIsComplate: Bool = false
-    private var downloadHomeworldIsComplate: Bool = false
+    private var downloadFilmsIsComplete: Bool = false
+    private var downloadStarshipsIsComplete: Bool = false
+    private var downloadVehiclesIsComplete: Bool = false
+    private var downloadSpeciesIsComplete: Bool = false
+    private var downloadHomeworldIsComplete: Bool = false
 }
 
 extension PersonsModel {
@@ -62,10 +62,10 @@ extension PersonsModel {
         return vehicleNames?.count ?? 0
     }
     
-    public func getFeaturers(finished: @escaping () -> Void) -> Void {
+    public func getFeaturesIfNeeded(finished: @escaping () -> Void) -> Void {
         if filmNames == nil {
             PersonWrapper.films(person: self) {() in
-                self.downloadFilmsIsComplate = true
+                self.downloadFilmsIsComplete = true
                 if self.checkResults() {
                     finished()
                 }
@@ -74,7 +74,7 @@ extension PersonsModel {
         
         if starshipNames == nil {
             PersonWrapper.starships(person: self) { () in
-                self.downloadStarshipsIsComplate = true
+                self.downloadStarshipsIsComplete = true
                 if self.checkResults() {
                     finished()
                 }
@@ -84,7 +84,7 @@ extension PersonsModel {
         
         if vehicleNames == nil {
             PersonWrapper.vehicles(person: self) { () in
-                self.downloadVehiclesIsComplate = true
+                self.downloadVehiclesIsComplete = true
                 if self.checkResults() {
                     finished()
                 }
@@ -93,7 +93,7 @@ extension PersonsModel {
         
         if specieNames == nil {
             PersonWrapper.species(person: self) { () in
-                self.downloadSpeciesIsComplate = true
+                self.downloadSpeciesIsComplete = true
                 if self.checkResults() {
                     finished()
                 }
@@ -103,7 +103,7 @@ extension PersonsModel {
     
         if homeworldName == nil {
             PersonWrapper.homeworld(person: self) { () in
-                self.downloadHomeworldIsComplate = true
+                self.downloadHomeworldIsComplete = true
                 if self.checkResults() {
                     finished()
                 }
@@ -113,6 +113,6 @@ extension PersonsModel {
     }
 
     private func checkResults() -> Bool {
-        return downloadFilmsIsComplate && downloadStarshipsIsComplate && downloadHomeworldIsComplate && downloadSpeciesIsComplate && downloadVehiclesIsComplate
+        return downloadFilmsIsComplete && downloadStarshipsIsComplete && downloadHomeworldIsComplete && downloadSpeciesIsComplete && downloadVehiclesIsComplete
     }
 }
